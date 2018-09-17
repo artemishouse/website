@@ -1,0 +1,455 @@
+// Colors
+$colorSlateDark: #001e37;
+$black: #232223;
+$white: #f6f7f6;
+
+// Font
+$baseFont: "Roboto Mono", monospace;
+
+// JS Classes
+$jsAnimatingClass: ".js-animating";
+$jsSelectedClass: ".js-selected";
+
+
+// ==============================
+// ==============================
+// ==============================
+
+// Transition properties
+$easeInOutQuad: cubic-bezier(0.455, 0.03, 0.515, 0.955); // for scroll snapping
+
+$transDuration: 0.2s; // for panel animations here and below
+$transTimeFunc: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+$transBase: $transDuration $transTimeFunc;
+$transBaseMedium: $transDuration*2 $transTimeFunc;
+$transBaseDelayShort: $transDuration $transDuration $transTimeFunc;
+$transBaseDelayMedium: $transDuration $transDuration*2 $transTimeFunc;
+$transBaseDelayLong: $transDuration $transDuration*3 $transTimeFunc;
+
+// responsiveness 
+$bpSmall: 700px;
+$bpMedium: 900px;
+$browser-context: 16;
+
+
+// ==============================
+// ==============================
+// ==============================
+
+// Flexbox alignment
+@mixin flexAlign($ai: center, $jc: center) {
+	display: flex;
+	align-items: $ai;
+	justify-content: $jc;
+}
+
+// Image function
+@function image($file) {
+	@return url($imgDir + "/" + $file);
+}
+
+// Convert px to ems
+@function em($pixels, $context: $browser-context) {
+	@if (unitless($pixels)) {
+		$pixels: $pixels * 1px;
+	}
+	@if (unitless($context)) {
+		$context: $context * 1px;
+	}
+	@return $pixels / $context * 1em;
+}
+
+// ==============================
+// ==============================
+// ==============================
+
+body {
+	font-family: $baseFont;
+	overflow-x: hidden;
+
+}
+
+
+ul {
+	.panels {
+		margin: 0;
+	}
+}
+
+// ==============================
+
+// trigger
+.trigger {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	margin: auto;
+	width: em(48);
+	height: em(40);
+	outline: none;
+	cursor: pointer;
+	background-color: rgba(black, 0.5);
+	z-index: 99;
+	visibility: hidden;
+	opacity: 0;
+	transform: translateY(-100%);
+	transition: opacity $transBase, transform $transBase,
+		visibility $transBaseDelayLong;
+
+	&:after {
+		$color: white;
+		content: "";
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		margin: auto;
+		width: 50%;
+		height: 50%;
+		background: linear-gradient(
+			to bottom,
+			$color,
+			$color 20%,
+			transparent 20%,
+			transparent 40%,
+			$color 40%,
+			$color 60%,
+			transparent 60%,
+			transparent 80%,
+			$color 80%,
+			$color 100%
+		);
+		opacity: 0.7;
+		transition: opacity $transBase;
+	}
+
+	&#{$jsAnimatingClass} {
+		visibility: visible;
+		opacity: 1;
+		transform: translateY(0);
+		transition: opacity $transBaseDelayLong, transform $transBaseDelayLong,
+			visibility $transBaseDelayLong;
+	}
+
+	&:hover {
+		&:after {
+			opacity: 1;
+		}
+	}
+}
+
+// ==============================
+
+// PANELS
+.panels {
+	@include flexAlign($ai: top);
+	
+	flex-direction: column;
+	height: 100vh;
+	margin: 0;
+	padding: 0;
+	transform-style: preserve-3d;
+	@media (min-width: $bpSmall) {
+		flex-direction: row;
+	}
+}
+
+// panels -- hover states
+.panels:not(#{$jsAnimatingClass}):hover {
+	a:not(:hover) {
+		.panel-title {
+			opacity: 0.3;
+		}
+	}
+
+	a:hover {
+		background-color: rgba($black, 0.5);
+		.panel-title {
+			transform: translateY(-6px);
+			&:before {
+				width: 6vw;
+			}
+		}
+	}
+}
+
+// panels -- animations
+.panels#{$jsAnimatingClass} {
+
+	position: fixed;
+	width: 100%;
+
+	.panel {
+		flex: 100%;
+		transition: flex $transBase;
+
+		a {
+			cursor: default;
+		}
+	}
+
+	.panel:not(#{$jsSelectedClass}) {
+		flex: 0;
+		a {
+			background-color: $black;
+		}
+		.panel-content {
+			opacity: 0;
+			transition: opacity 0s, transform 0s;
+		}
+	}
+
+	.panel#{$jsSelectedClass} {
+
+		a {
+			background-color: rgba($black, 1);
+		}
+		.description {
+			display: block;
+		}
+	}
+}
+
+// panel
+.panel {
+	@include flexAlign;
+	position: relative;
+	border-right: 1px solid white;
+	flex: 100%;
+	width: 100%;
+	height: 100%;
+	text-transform: lowercase;
+	transition: flex $transBaseDelayLong;
+	background: {
+		color: $black;
+		position: center;
+		repeat: no-repeat;
+		size: cover;
+	}
+
+	&:nth-child(4) {
+		border-right: none;
+	}
+
+	a {
+		@include flexAlign;
+		flex-direction: column;
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		margin: auto;
+		width: 100%;
+		height: 100%;
+		text-align: center;
+		color: white;
+		background-color: rgba($black, 0.6);
+		text-decoration: none;
+		user-select: none;
+		transition: background-color $transBase;
+	}
+
+	.panel-content {
+		transition: opacity $transBaseDelayLong, transform $transBaseDelayLong;
+	}
+
+	.panel-title {
+		position: relative;
+		padding: 0 em(12) em(6) em(12);
+		font-size: em(30);
+		transition: opacity $transBase, transform $transBase;
+
+		@media (min-width: $bpSmall) {
+			font-size: 2.5vw;
+			font-weight: 100;
+		}
+
+		&:before {
+			content: "";
+			position: absolute;
+			top: 100%;
+			right: 0;
+			left: 0;
+			margin: auto;
+			width: 0;
+			height: 1vw;
+			background-color: white;
+			transition: width $transBase;
+			@media (min-width: $bpSmall) {
+				height: 0.5vw;
+			}
+		}
+	}
+
+	.description {
+		display: none;
+		color: $white;
+	}
+}
+
+// ==============================
+
+// individual previews
+.preview-container {
+  display: none;
+
+  &#{$jsAnimatingClass} {
+    display: block;
+  }
+}
+
+section.teaser {
+	background-color: rgba($white,0.3);
+
+	&:nth-child(2n) {
+		background-color: rgba($white,0.9);
+	}
+}
+
+.teaser {
+	max-height: 100%;
+	scroll-behavior: smooth;
+
+	.experience-panel {
+
+		height: 100vh;
+		width: 100%;
+
+		.experience-container {
+			margin: 0 auto;
+			max-height: 100vh;
+			max-width: 70%;
+			padding-top: 35vh;
+			overflow-y: hidden;
+
+			.organization-title {
+				font-size: 1.5em;
+				font-weight: 400;
+			}
+
+			.organization-description,
+			.organization-highlights,
+			.organization-report {
+				font-family: "Inconsolata", monospace;
+				font-size: 1.15em;
+			}
+
+			.organization-description,
+			.organization-report {
+				margin-top: 24px;
+			}
+
+			.organization-description {
+				line-height: 2em;
+				letter-spacing: 0.15em;
+
+				li {
+					padding: 18px 0 12px 0;
+				}
+			} // .organization-description
+
+		} // end .experience-container
+
+	} // end .experience-panel 
+
+} // end .teaser
+
+// ==============================
+
+// snap scroll
+.preview-container {
+	#scroll-indicator {
+		font-family: "Roboto Mono", monospace;
+		position: fixed;
+		bottom: 0%;
+		left: 5px;
+		transform: translate(0, -50%);
+
+		ul {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+
+		li {
+			position: relative;
+			line-height: 36px;
+
+			&.active {
+				&:before {
+					opacity: 0;
+					visibility: hidden;
+					transform: translate(-50% 0);
+				}
+
+				a {
+					height: 44px;
+				}
+			}
+
+			&:before {
+				content: attr(data-title);
+				position: absolute;
+				bottom: -5px;
+				left: calc(100% + 20px);
+				font-size: 10px;
+				line-height: 1;
+				opacity: 0;
+				visibility: hidden;
+
+				transition: left 0.25s $easeInOutQuad, opacity 0.25s $easeInOutQuad,
+					visibility 0.25s $easeInOutQuad;
+			}
+
+			&:after {
+				z-index: 99999999999;
+				content: "";
+				display: block;
+				position: absolute;
+				bottom: 0px;
+				left: 2px;
+				height: 2px;
+				width: calc(100% - 4px);
+				background: black;
+				pointer-events: none;
+				transition: width 0.25s $easeInOutQuad 0.1s, height 0.25s $easeInOutQuad 0.1s,
+					left 0.25s $easeInOutQuad 0.1s, bottom 0.25s $easeInOutQuad 0.1s;
+			}
+
+			&:hover {
+				&:after {
+					left: 0px;
+					bottom: -1px;
+					width: 100%;
+					height: 4px;
+					transition: width 0.15s $easeInOutQuad, height 0.15s $easeInOutQuad,
+						left 0.15s $easeInOutQuad, bottom 0.15s $easeInOutQuad;
+				}
+
+				&:before {
+					left: calc(100% + 10px);
+					opacity: 1;
+					visibility: visible;
+				}
+			}
+		}
+
+		a {
+			display: block;
+			position: relative;
+			height: 4px;
+			margin: 6px 0 0 0;
+			font-weight: bold;
+			font-size: 40px;
+			line-height: 36px;
+			font-family: "Roboto Mono", monospace;
+			text-decoration: none;
+			color: black;
+			overflow: hidden;
+			transition: height 0.25s $easeInOutQuad;
+		}
+	}	
+}
